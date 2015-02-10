@@ -110,7 +110,7 @@ void update_cpu_times(unsigned long data)
    printk("Timer called\n");
    #endif
    
-   work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL)
+   work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL);
 
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
 }
