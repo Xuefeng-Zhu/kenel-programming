@@ -6,6 +6,7 @@
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/timer.h>
+#include <linux/workqueue.h>
 
 #include "mp1_given.h"
 #include "mp1.h"
@@ -34,9 +35,11 @@ static struct timer_list cpu_timer;
 static struct list_head *head, *next;
 static struct pid_time_list *tmp;
 
-//work queue
-static struct workqueue_struct *printk_wq;
+/* Work to get cpu usage */
+static struct work_struct *cpu_use_work;
 
+/* Work queue having the work to get cpu usage */
+static struct workqueue_struct *cpu_use_wq;
 
 
 /* Available file operations for mp1/status */
@@ -92,7 +95,7 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
 ssize_t write_proc(struct file *filp, const char *user, size_t count, loff_t *offset)
 {
    char pid_buf[PID_MAX_LENGTH];
-   tmp = (struct pid_time_list *)kmalloc(sizeof(struct pid_time_list), 0);
+   tmp = (struct pid_time_list *)kmalloc(sizeof(struct pid_time_list), GFP_KERNEL);
    copy_from_user(pid_buf, user, count);
    sscanf(pid_buf, "%d", &tmp->pid);
    list_add(&(tmp->list), &(pid_time_list.list));
@@ -107,6 +110,8 @@ void update_cpu_times(unsigned long data)
    printk("Timer called\n");
    #endif
    
+   work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL)
+
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
 }
 
@@ -116,11 +121,15 @@ int __init mp1_init(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP1 MODULE LOADING\n");
    #endif
-   // Insert your code here ...
+
    create_mp1_proc_files();
+
    INIT_LIST_HEAD(&pid_time_list.list);   
+
    setup_timer(&cpu_timer, update_cpu_times, 0 );
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
+
+   cpu_use_wq = create_workqueue("cpu_use_queue");
 
    printk(KERN_ALERT "MP1 MODULE LOADED\n");
    return 0;   
