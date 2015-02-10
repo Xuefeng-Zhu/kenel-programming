@@ -111,8 +111,16 @@ void update_cpu_times(unsigned long data)
    #endif
    
    cpu_use_work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL);
+   INIT_WORK(cpu_use_work, cpu_use_wq_function);
+   queue_work(cpu_use_wq, work);
 
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
+}
+
+/* Callback for the work function to process cpu usage */
+void cpu_use_wq_function(struct work_struct *work)
+{
+   printk("test function");
 }
 
 /* Called when module is loaded */
