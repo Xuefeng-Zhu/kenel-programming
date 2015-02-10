@@ -7,6 +7,7 @@
 #include <linux/slab.h>
 #include <linux/timer.h>
 #include <linux/workqueue.h>
+#include <linux/spinlock.h>
 
 #include "mp1_given.h"
 #include "mp1.h"
@@ -41,6 +42,8 @@ static struct work_struct *cpu_use_work;
 /* Work queue having the work to get cpu usage */
 static struct workqueue_struct *cpu_use_wq;
 
+/* Spinlock to protect the linked list */
+static spinlock_t list_lock;
 
 /* Available file operations for mp1/status */
 struct file_operations proc_fops = {
@@ -79,12 +82,17 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
    int pos = 0;
    int len;
    char pid[PID_MAX_LENGTH];
+
+   spin_lock(&list_lock);
+
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
       len = sprintf(pid, "PID: %d\n", tmp->pid);
       copy_to_user(user + pos, pid, len);
       pos += len;
    }
+
+   spin_unlock(&list_lock);
    
    return count;
 }
@@ -98,8 +106,11 @@ ssize_t write_proc(struct file *filp, const char *user, size_t count, loff_t *of
    tmp = (struct pid_time_list *)kmalloc(sizeof(struct pid_time_list), GFP_KERNEL);
    copy_from_user(pid_buf, user, count);
    sscanf(pid_buf, "%d", &tmp->pid);
+
+   spin_lock(&list_lock);
    list_add(&(tmp->list), &(pid_time_list.list));
-   
+   spin_unlock(&list_lock);   
+
    return count;
 }
 
@@ -112,8 +123,7 @@ void update_cpu_times(unsigned long data)
    
    cpu_use_work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL);
    INIT_WORK(cpu_use_work, cpu_use_wq_function);
-   int ret = queue_work(cpu_use_wq, cpu_use_work);
-   printk("%d\n", ret);
+   queue_work(cpu_use_wq, cpu_use_work);
 
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
 }
@@ -121,11 +131,23 @@ void update_cpu_times(unsigned long data)
 /* Callback for the work function to process cpu usage */
 void cpu_use_wq_function(struct work_struct *work)
 {
-   printk("test function");
+   #ifdef DEBUG
+   printk("Work item performed\n");
+   #endif
+
+   spin_lock(&list_lock);
+
+   list_for_each(head, &pid_time_list.list) {
+      tmp = list_entry(head, struct pid_time_list, list);
+      int a = get_cpu_use(tmp->pid, &tmp->cpu_value);
+      printk("%d\n", a);
+   }
+
+   spin_unlock(&list_lock);
+
    kfree((void *)work);
    return;
 }
-
 /* Called when module is loaded */
 int __init mp1_init(void)
 {
@@ -141,6 +163,8 @@ int __init mp1_init(void)
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
 
    cpu_use_wq = create_workqueue("cpu_use_queue");
+
+   spin_lock_init(&list_lock);
 
    printk(KERN_ALERT "MP1 MODULE LOADED\n");
    return 0;   
