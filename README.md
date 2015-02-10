@@ -1,1 +1,0 @@
-# kenel_programming
