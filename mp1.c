@@ -112,7 +112,8 @@ void update_cpu_times(unsigned long data)
    
    cpu_use_work = (struct work_struct *)kmalloc(sizeof(struct work_struct), GFP_KERNEL);
    INIT_WORK(cpu_use_work, cpu_use_wq_function);
-   queue_work(cpu_use_wq, work);
+   int ret = queue_work(cpu_use_wq, cpu_use_work);
+   printk("%d\n", ret);
 
    mod_timer(&cpu_timer, jiffies + msecs_to_jiffies(5000));
 }
@@ -152,8 +153,12 @@ void __exit mp1_exit(void)
    // Insert your code here ...
 
    // Cleans up the file entries in /proc and the data structures
+   delete_mp1_proc_files();
    delete_pid_time_list();
    del_timer(&cpu_timer);
+
+   flush_workqueue(cpu_use_wq);
+   destroy_workqueue(cpu_use_wq);
 
    printk(KERN_ALERT "MP1 MODULE UNLOADED\n");
 }
