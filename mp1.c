@@ -34,6 +34,11 @@ static struct timer_list cpu_timer;
 static struct list_head *head, *next;
 static struct pid_time_list *tmp;
 
+//work queue
+static struct workqueue_struct *printk_wq;
+
+
+
 /* Available file operations for mp1/status */
 struct file_operations proc_fops = {
    read: read_proc,

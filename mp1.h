@@ -8,6 +8,13 @@ struct pid_time_list {
    unsigned long cpu_value;
 };
 
+//work queue
+struct work_q {
+  struct work_struct printk_work;
+  int    x;
+};
+
+
 /* Callback for the kernel timer */
 void update_cpu_times(unsigned long data);
 
