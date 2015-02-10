@@ -18,17 +18,21 @@ static const struct modversion_info ____versions[]
 __used
 __attribute__((section("__versions"))) = {
 	{ 0x9412fa01, __VMLINUX_SYMBOL_STR(module_layout) },
+	{ 0x8c03d20c, __VMLINUX_SYMBOL_STR(destroy_workqueue) },
+	{ 0x42160169, __VMLINUX_SYMBOL_STR(flush_workqueue) },
 	{ 0xc996d097, __VMLINUX_SYMBOL_STR(del_timer) },
+	{ 0x43a53735, __VMLINUX_SYMBOL_STR(__alloc_workqueue_key) },
 	{ 0x593a99b, __VMLINUX_SYMBOL_STR(init_timer_key) },
 	{ 0x353c3b0c, __VMLINUX_SYMBOL_STR(remove_proc_entry) },
 	{ 0xcc72f4ce, __VMLINUX_SYMBOL_STR(proc_create_data) },
 	{ 0x45076c0d, __VMLINUX_SYMBOL_STR(proc_mkdir) },
-	{ 0x37a0cba, __VMLINUX_SYMBOL_STR(kfree) },
 	{ 0x357b0269, __VMLINUX_SYMBOL_STR(pid_task) },
 	{ 0xa13f36ec, __VMLINUX_SYMBOL_STR(find_vpid) },
 	{ 0x8834396c, __VMLINUX_SYMBOL_STR(mod_timer) },
 	{ 0x7d11c268, __VMLINUX_SYMBOL_STR(jiffies) },
 	{ 0x3bd1b1f6, __VMLINUX_SYMBOL_STR(msecs_to_jiffies) },
+	{ 0x2e0d2f7f, __VMLINUX_SYMBOL_STR(queue_work_on) },
+	{ 0x37a0cba, __VMLINUX_SYMBOL_STR(kfree) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0x20c55ae0, __VMLINUX_SYMBOL_STR(sscanf) },
 	{ 0x4f6b400b, __VMLINUX_SYMBOL_STR(_copy_from_user) },
@@ -46,4 +50,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "A2F73BF10AB828C03B7FEC0");
+MODULE_INFO(srcversion, "667943079C18392740DB28D");

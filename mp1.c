@@ -122,6 +122,8 @@ void update_cpu_times(unsigned long data)
 void cpu_use_wq_function(struct work_struct *work)
 {
    printk("test function");
+   kfree((void *)work);
+   return;
 }
 
 /* Called when module is loaded */
