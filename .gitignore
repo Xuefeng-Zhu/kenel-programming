@@ -2,3 +2,5 @@ userapp
 *.ko
 *.mod.*
 *.o
+modules.order
+Module.symvers
