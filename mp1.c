@@ -83,13 +83,13 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
    int len;
    char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
 
-   spin_lock(&list_lock);
+//   spin_lock(&list_lock);
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
       len = sprintf(pid + pos, "PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
       pos += len;
    }
-   spin_unlock(&list_lock);   
+ //  spin_unlock(&list_lock);   
 
    copy_to_user(user, pid, pos);
    kfree((void *)pid);
@@ -139,15 +139,15 @@ void cpu_use_wq_function(struct work_struct *work)
    printk("Work item performed\n");
    #endif
 
-   //spin_lock(&list_lock);
+   spin_lock(&list_lock);
 
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
-      get_cpu_use(tmp->pid, &tmp->cpu_time);
-      printk("%lu\n", tmp->cpu_time);
+      int ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
+      printk("%d\n", ret);
    }
 
-   //spin_unlock(&list_lock);
+   spin_unlock(&list_lock);
 
    kfree((void *)work);
    return;

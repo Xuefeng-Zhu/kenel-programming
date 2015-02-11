@@ -18,6 +18,6 @@ int main(int argc, char* argv[])
    sprintf(echo_buf, "echo '%lu'>/proc/mp1/status", pid);
    system(echo_buf);
      
-   Fibonacci(40);
+   Fibonacci(50);
    return 0;
 }
