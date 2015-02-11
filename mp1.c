@@ -145,7 +145,7 @@ void cpu_use_wq_function(struct work_struct *work)
    list_for_each_safe(head, next, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
       ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
-      
+
       if (ret == -1){
          list_del(head);
          kfree(tmp);
@@ -197,7 +197,6 @@ void __exit mp1_exit(void)
 
    flush_workqueue(cpu_use_wq);
    destroy_workqueue(cpu_use_wq);
-
 
    // Cleans up the file entries in /proc and the data structures
    delete_mp1_proc_files();

@@ -1,0 +1,4 @@
+userapp
+*.ko
+*.mod.*
+*.o
