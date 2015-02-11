@@ -145,11 +145,18 @@ void cpu_use_wq_function(struct work_struct *work)
    list_for_each_safe(head, next, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
       ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
+      
       if (ret == -1){
          list_del(head);
          kfree(tmp);
       }
-      printk("%d\n", ret);
+      else{
+         tmp->cpu_time = jiffies_to_msecs(cputime_to_jiffies(tmp->cpu_time));
+
+         #ifdef DEBUG
+         printk("PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
+         #endif
+      }
    }
 
    spin_unlock(&list_lock);
