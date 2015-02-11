@@ -32,7 +32,7 @@ static struct pid_time_list pid_time_list;
 static struct timer_list cpu_timer;
 
 /* Used for creating and traversing the linked list */
-static struct list_head *pos, *next;
+static struct list_head *head, *next;
 static struct pid_time_list *tmp;
 
 /* Work to get cpu usage */
@@ -52,9 +52,9 @@ struct file_operations proc_fops = {
 
 /* Helper function to delete the linked list */
 void delete_pid_time_list(void) {
-   list_for_each_safe(pos, next, &pid_time_list.list) {
-      tmp = list_entry(pos, struct pid_time_list, list);
-      list_del(pos);
+   list_for_each_safe(head, next, &pid_time_list.list) {
+      tmp = list_entry(head, struct pid_time_list, list);
+      list_del(head);
       kfree(tmp);
    }   
 }
@@ -82,11 +82,13 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
    int len;
    char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
 
-   list_for_each(pos, &pid_time_list.list) {
-      tmp = list_entry(pos, struct pid_time_list, list);
+//   spin_lock(&list_lock);
+   list_for_each(head, &pid_time_list.list) {
+      tmp = list_entry(head, struct pid_time_list, list);
       len = sprintf(pid + pos, "PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
       pos += len;
    }
+ //  spin_unlock(&list_lock);   
 
    copy_to_user(user, pid, pos);
    kfree((void *)pid);
@@ -140,11 +142,11 @@ void cpu_use_wq_function(struct work_struct *work)
 
    spin_lock(&list_lock);
 
-   list_for_each_safe(pos, next, &pid_time_list.list) {
-      tmp = list_entry(pos, struct pid_time_list, list);
-      int ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
+   list_for_each_safe(head, next, &pid_time_list.list) {
+      tmp = list_entry(head, struct pid_time_list, list);
+      ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
       if (ret == -1){
-         list_del(pos);
+         list_del(head);
          kfree(tmp);
       }
       printk("%d\n", ret);
@@ -183,11 +185,12 @@ void __exit mp1_exit(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP1 MODULE UNLOADING\n");
    #endif
-
+   
    del_timer(&cpu_timer);
 
    flush_workqueue(cpu_use_wq);
    destroy_workqueue(cpu_use_wq);
+
 
    // Cleans up the file entries in /proc and the data structures
    delete_mp1_proc_files();
