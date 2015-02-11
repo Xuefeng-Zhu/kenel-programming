@@ -13,11 +13,10 @@
 #include "mp1.h"
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Group_ID");
+MODULE_AUTHOR("Group_09");
 MODULE_DESCRIPTION("CS-423 MP1");
 
 #define DEBUG 1
-#define PID_MAX_LENGTH 20
 #define GLOBAL_RW_PERM 0666
 #define DIR_NAME "mp1"
 #define FILE_NAME "status"
@@ -33,7 +32,7 @@ static struct pid_time_list pid_time_list;
 static struct timer_list cpu_timer;
 
 /* Used for creating and traversing the linked list */
-static struct list_head *head, *next;
+static struct list_head *pos, *next;
 static struct pid_time_list *tmp;
 
 /* Work to get cpu usage */
@@ -53,9 +52,9 @@ struct file_operations proc_fops = {
 
 /* Helper function to delete the linked list */
 void delete_pid_time_list(void) {
-   list_for_each_safe(head, next, &pid_time_list.list) {
-      tmp = list_entry(head, struct pid_time_list, list);
-      list_del(head);
+   list_for_each_safe(pos, next, &pid_time_list.list) {
+      tmp = list_entry(pos, struct pid_time_list, list);
+      list_del(pos);
       kfree(tmp);
    }   
 }
@@ -83,13 +82,11 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
    int len;
    char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
 
-//   spin_lock(&list_lock);
-   list_for_each(head, &pid_time_list.list) {
-      tmp = list_entry(head, struct pid_time_list, list);
+   list_for_each(pos, &pid_time_list.list) {
+      tmp = list_entry(pos, struct pid_time_list, list);
       len = sprintf(pid + pos, "PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
       pos += len;
    }
- //  spin_unlock(&list_lock);   
 
    copy_to_user(user, pid, pos);
    kfree((void *)pid);
@@ -135,15 +132,21 @@ void update_cpu_times(unsigned long data)
 /* Callback for the work function to process cpu usage */
 void cpu_use_wq_function(struct work_struct *work)
 {
+   int ret;
+
    #ifdef DEBUG
    printk("Work item performed\n");
    #endif
 
    spin_lock(&list_lock);
 
-   list_for_each(head, &pid_time_list.list) {
-      tmp = list_entry(head, struct pid_time_list, list);
+   list_for_each_safe(pos, next, &pid_time_list.list) {
+      tmp = list_entry(pos, struct pid_time_list, list);
       int ret = get_cpu_use(tmp->pid, &tmp->cpu_time);
+      if (ret == -1){
+         list_del(pos);
+         kfree(tmp);
+      }
       printk("%d\n", ret);
    }
 
@@ -180,15 +183,15 @@ void __exit mp1_exit(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP1 MODULE UNLOADING\n");
    #endif
-   // Insert your code here ...
 
-   // Cleans up the file entries in /proc and the data structures
-   delete_mp1_proc_files();
-   delete_pid_time_list();
    del_timer(&cpu_timer);
 
    flush_workqueue(cpu_use_wq);
    destroy_workqueue(cpu_use_wq);
+
+   // Cleans up the file entries in /proc and the data structures
+   delete_mp1_proc_files();
+   delete_pid_time_list();
 
    printk(KERN_ALERT "MP1 MODULE UNLOADED\n");
 }
