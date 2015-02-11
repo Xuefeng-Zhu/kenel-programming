@@ -4,8 +4,8 @@
 /* The linked list structure */
 struct pid_time_list {
    struct list_head list; /* Kernel's list structure */
-   int pid;
-   unsigned long cpu_value;
+   unsigned long pid;
+   unsigned long cpu_time;
 };
 
 /* Callback for the work function to process cpu usage */

@@ -81,20 +81,20 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
 {
    int pos = 0;
    int len;
-   char pid[PID_MAX_LENGTH];
+   char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
 
    spin_lock(&list_lock);
-
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
-      len = sprintf(pid, "PID: %d\n", tmp->pid);
-      copy_to_user(user + pos, pid, len);
+      len = sprintf(pid + pos, "PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
       pos += len;
    }
+   spin_unlock(&list_lock);   
 
-   spin_unlock(&list_lock);
-   
-   return count;
+   copy_to_user(user, pid, pos);
+   kfree((void *)pid);
+
+   return pos;
 }
 
 /* Occurs when a user runs ./process > /proc/mp1/status 
@@ -102,15 +102,19 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
 */
 ssize_t write_proc(struct file *filp, const char *user, size_t count, loff_t *offset)
 {
-   char pid_buf[PID_MAX_LENGTH];
+   char pid_buf[20];
    tmp = (struct pid_time_list *)kmalloc(sizeof(struct pid_time_list), GFP_KERNEL);
    copy_from_user(pid_buf, user, count);
-   sscanf(pid_buf, "%d", &tmp->pid);
+   sscanf(pid_buf, "%lu", &tmp->pid);
 
    spin_lock(&list_lock);
    list_add(&(tmp->list), &(pid_time_list.list));
    spin_unlock(&list_lock);   
 
+   #ifdef DEBUG
+   printk("PID: %s registered\n", pid_buf);
+   #endif
+   
    return count;
 }
 
@@ -135,15 +139,15 @@ void cpu_use_wq_function(struct work_struct *work)
    printk("Work item performed\n");
    #endif
 
-   spin_lock(&list_lock);
+   //spin_lock(&list_lock);
 
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
-      int a = get_cpu_use(tmp->pid, &tmp->cpu_value);
-      printk("%d\n", a);
+      get_cpu_use(tmp->pid, &tmp->cpu_time);
+      printk("%lu\n", tmp->cpu_time);
    }
 
-   spin_unlock(&list_lock);
+   //spin_unlock(&list_lock);
 
    kfree((void *)work);
    return;
