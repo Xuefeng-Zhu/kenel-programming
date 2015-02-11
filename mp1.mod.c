@@ -26,6 +26,7 @@ __attribute__((section("__versions"))) = {
 	{ 0x353c3b0c, __VMLINUX_SYMBOL_STR(remove_proc_entry) },
 	{ 0xcc72f4ce, __VMLINUX_SYMBOL_STR(proc_create_data) },
 	{ 0x45076c0d, __VMLINUX_SYMBOL_STR(proc_mkdir) },
+	{ 0x37befc70, __VMLINUX_SYMBOL_STR(jiffies_to_msecs) },
 	{ 0x357b0269, __VMLINUX_SYMBOL_STR(pid_task) },
 	{ 0xa13f36ec, __VMLINUX_SYMBOL_STR(find_vpid) },
 	{ 0x8834396c, __VMLINUX_SYMBOL_STR(mod_timer) },
@@ -52,4 +53,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "FA4652570B3D61EF48EE524");
+MODULE_INFO(srcversion, "6CCF8619124A30B06E0DE6A");

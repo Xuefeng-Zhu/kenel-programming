@@ -1,13 +1,13 @@
 #include "userapp.h"
 
-int Fibonacci(int n)
+int fibonacci(int n)
 {
-   if ( n == 0 )
+   if (n <= 0) 
       return 0;
-   else if ( n == 1 )
+   else if (n == 1)
       return 1;
    else
-      return ( Fibonacci(n-1) + Fibonacci(n-2) );
+      return fibonacci(n-1) + fibonacci(n-2);
 } 
 
 int main(int argc, char* argv[])
@@ -18,6 +18,6 @@ int main(int argc, char* argv[])
    sprintf(echo_buf, "echo '%lu'>/proc/mp1/status", pid);
    system(echo_buf);
      
-   Fibonacci(50);
+   fibonacci(50);
    return 0;
 }
