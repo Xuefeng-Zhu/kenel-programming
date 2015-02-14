@@ -80,7 +80,7 @@ ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
 {	 
    int pos = 0;
    int len;
-   char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
+   char *pid = (char *)kmalloc(count, GFP_KERNEL);
 
    if((int)*offset >0) {
       kfree((void *)pid);
