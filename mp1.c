@@ -77,22 +77,27 @@ void delete_mp1_proc_files(void) {
    Only prints out PIDs right now.
 */
 ssize_t read_proc(struct file *filp, char *user, size_t count, loff_t *offset)
-{
+{	 
    int pos = 0;
    int len;
    char *pid = (char *)kmalloc(sizeof(count), GFP_KERNEL);
 
-//   spin_lock(&list_lock);
+   if((int)*offset >0) {
+      kfree((void *)pid);
+      return 0;
+   }
+   
+   //   spin_lock(&list_lock);
    list_for_each(head, &pid_time_list.list) {
       tmp = list_entry(head, struct pid_time_list, list);
       len = sprintf(pid + pos, "PID: %lu, %lu\n", tmp->pid, tmp->cpu_time);
       pos += len;
    }
- //  spin_unlock(&list_lock);   
-
+   //  spin_unlock(&list_lock);   
    copy_to_user(user, pid, pos);
    kfree((void *)pid);
 
+   *offset +=pos;
    return pos;
 }
 
