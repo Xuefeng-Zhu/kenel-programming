@@ -67,5 +67,4 @@ Step 4:
 ­ run two user programs concurrently
 Step 5:
 cat /proc/mp1/status
-­ read the pid & cpu time from the kernel space
-```￼
+­read the pid & cpu time from the kernel space
