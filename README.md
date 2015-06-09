@@ -52,19 +52,33 @@ Step 7: Wrote a user space application “userapp” that implements the factori
 
 Step 8: Memory leak checks: Our kernel module ensures that the resources that were allocated during its execution are freed which includes freeing allocated memory, stopping pending work function, destroying timers, workqueue and proc filesystem entry.
 ## Details of how to run the program
+Step1: install the module
+
 ```
 run “make”
 sudo insmod mp1.ko
-­ install the module
-Step 2:
+```
+
+Step 2: ­run the user space program “userapp” that registers itself into the module
+
+```
 ./userapp &
-­ run the user space program “userapp” that registers itself into the module
-Step 3:
+```
+
+Step 3: read the pid & cpu time from the kernel space
+
+```
 cat /proc/mp1/status
-­ read the pid & cpu time from the kernel space
-Step 4:
+­``` 
+
+Step 4: run two user programs concurrently
+
+```
 ./userapp & ./userapp &
-­ run two user programs concurrently
-Step 5:
+­``` 
+
+Step 5: read the pid & cpu time from the kernel space
+
+```
 cat /proc/mp1/status
-­read the pid & cpu time from the kernel space
+­```
